@@ -19,20 +19,21 @@ dfCovid = dfCovid[CovidCloumnList]
 # remove international and worls rows
 dfCovid = dfCovid[dfCovid.location != "International"]
 dfCovid = dfCovid[dfCovid.location != "World"]
-#transform date column
+#transform date column to Datetype, to be able to join datas frames
 dfSchools["Date"] = pd.to_datetime(dfSchools.Date)
 dfCovid["date"] = pd.to_datetime(dfCovid.date)
 #rename cloumns
 dfSchools.rename(columns={"Code": "iso_code","Date": "date"}, inplace = True)
 #join dataframes
 dfTotal = pd.merge(dfCovid, dfSchools,  on=["iso_code","date"])
-#remove nan
+#remove nan values and convert negative values to positive
 dfTotal["new_cases_per_million"] = dfTotal["new_cases_per_million"].fillna(0)
 dfTotal["new_cases_per_million"] = dfTotal["new_cases_per_million"].astype(str)
 dfTotal["new_cases_per_million"] = dfTotal["new_cases_per_million"].str.replace("-","")
+#convert date to string. Datetype cant be used for the visualization -> throws error
 dfTotal["date"] = dfTotal["date"].astype(str)
 dfTotal["new_cases_per_million"] = dfTotal["new_cases_per_million"].astype(float)
-#dfTotal["School closures"] = dfTotal["School closures"].astype(str)
+
 #save preprocessed and merged data
 dfTotal.to_csv("Data/covidMerged.csv", sep=',')
 print(dfTotal.dtypes)
