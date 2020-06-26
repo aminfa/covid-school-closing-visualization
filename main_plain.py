@@ -111,6 +111,9 @@ for i, row in enumerate(data):
     # If the length of the row stayed the same after the join operation then the school closure information is missing
     if len(row) == len(columns):
         rows_remaining.append(row)
+    else:
+        row.append(0)
+        rows_remaining.append(row)
 
 print("There are {} many rows without school closure information that are removed.".format(len(data) - len(rows_remaining)))
 
@@ -121,9 +124,11 @@ rows_remaining = []
 for row in data:
     try:
         # Filter empty values
-        for value in row:
+        for value in row[:-1]:
             if value is None or len(value) == 0:
-                raise Exception("Empty value")
+                # raise Exception("Empty value")
+                # TODO write as log file
+                pass
 
         # format date.
         # It is present as a string like `2019-12-31`
@@ -133,9 +138,13 @@ for row in data:
 
         # format new cases
         new_cases = row[4]
+        if len(new_cases) == 0:
+            new_cases = '0' # assume its 0
         new_cases_float = float(new_cases) # parse the float
         if new_cases_float < 0:
             raise Exception("Negative value")
+        # add 100 to all new cases:
+        new_cases_float += 100
         row[4] = new_cases_float
 
         # format School Status
@@ -160,3 +169,4 @@ fig = px.scatter_geo(df, locations=columns[0], color=columns[5],
                      animation_frame=columns[3],
                      projection="natural earth")
 fig.show()
+
