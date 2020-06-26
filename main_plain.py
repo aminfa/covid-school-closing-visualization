@@ -24,6 +24,7 @@ import pandas as pd
 import plotly.express as px
 import csv
 from datetime import datetime
+from math import log
 import sys
 import traceback
 
@@ -120,23 +121,35 @@ columns = ["ISO-code", "Continent", "Location", "Date", "New Cases per Million",
 # This function defines the translation between color code and color text:
 color_status_texts = ["No Data", "No Restriction Measures", "Recommended Closing", "Required Closing at Some Levels" ,"Required Closing at All Levels"]
 def get_circle_color(color_code):
+    # if color_code is None or color_code == "":
+    #     return "No Data"
+    # color_code = str(color_code)
+    # if  color_code == "0":
+    #     return "No Restriction Measures"
+    # elif color_code == "1":
+    #     return "Recommended Closing"
+    # elif color_code == "2":
+    #     return "Required Closing at Some Levels"
+    # elif color_code == "3":
+    #     return "Required Closing at All Levels"
     if color_code is None or color_code == "":
-        return "No Data"
+        return 0
     color_code = str(color_code)
     if  color_code == "0":
-        return "No Restriction Measures"
+        return 1
     elif color_code == "1":
-        return "Recommended Closing"
+        return 2
     elif color_code == "2":
-        return "Required Closing at Some Levels"
+        return 3
     elif color_code == "3":
-        return "Required Closing at All Levels"
+        return 4
 
 first_date = None
 
 # Lets format the columns
 rows_remaining = []
 logs = {}
+
 for row in data:
     try:
         if len(row) == 5:
@@ -155,9 +168,9 @@ for row in data:
         # format date.
         # It is present as a string like `2019-12-31`
         # Transform it to: Dec, 31
-        row_date = row[3]
-        date = datetime.strptime(row_date, "%Y-%m-%d")
-        row[3] = date.strftime("%b %d")
+        # row_date = row[3]
+        # date = datetime.strptime(row_date, "%Y-%m-%d")
+        # row[3] = date.strftime("%b %d")
 
         # format new cases
         new_cases = row[4]
@@ -179,7 +192,9 @@ for row in data:
         # row[5] = school_int
 
         # append circle size:
-        row.append(100)
+        circle_size = 1.0 # min size
+        circle_size += log(row[4] + 1)
+        row.append(circle_size)
 
         # append circle color:
         row.append(get_circle_color(row[5]))
@@ -200,9 +215,31 @@ for message in logs.keys():
         wr.writerows(logs[message])
 
 data = rows_remaining
+# groups_covered = []
+# head_rows = []
+# resorted_rows = []
+# for row in data:
+#     school_status_group = row[7]
+#     if school_status_group not in groups_covered:
+#         groups_covered.append(school_status_group)
+#         head_rows.append(row)
+#     else:
+#         resorted_rows.append(row)
+#
+# data = []
+# data += head_rows
+# data += resorted_rows
+#
+data.append(["AFG","Asia","Afghanistan","Dec 30",0.0,"",1.0,"No Data"])
+data.append(["AFG","Asia","Afghanistan","Dec 29",0.0,"",1.0,"No Restriction Measures"])
+data.append(["AFG","Asia","Afghanistan","Dec 28",0.0,"",1.0,"Required Closing at All Levels"])
+data.append(["AFG","Asia","Afghanistan","Dec 27",0.0,"",1.0,"Required Closing at Some Levels"])
+
+
 with open("Data/resulting_table.csv", "w") as result_f:
     wr = csv.writer(result_f, quoting=csv.QUOTE_ALL)
     wr.writerows(data)
+
 
 
 # Lets transform data to a dataframe and present it using plotly
