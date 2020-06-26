@@ -173,7 +173,9 @@ for row in data:
             new_cases = '0'  # assume its 0
         new_cases_float = float(new_cases)  # parse as float
         if new_cases_float < 0:
-            raise Exception("Negative value")
+            row[4] = 0
+            row[5] = ""
+            # raise Exception("Negative value")
         # add 100 to all new cases:
         row[4] = new_cases_float
 
@@ -237,7 +239,7 @@ fig = px.scatter_geo(df,
                      # location, date, new cases per million, circle color # TODO change column name
                      animation_frame=columns[3],  # Date
                      # animation_group=columns[-1],
-                     size_max=8,  # circle max size
+                     size_max=10,  # circle max size
                      projection="natural earth")
 fig.update_layout(
     title={
