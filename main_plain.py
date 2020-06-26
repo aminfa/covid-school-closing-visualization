@@ -97,7 +97,6 @@ column_index_closures_school = 3
 
 column_index_date_covid = 3
 column_index_isocode_covid = 0
-
 for row_school in school_data:
     # Go through date rows:
     row_school_date = row_school[column_index_date_school]
@@ -121,35 +120,36 @@ columns = ["ISO-code", "Continent", "Location", "Date", "New Cases per Million",
 # This function defines the translation between color code and color text:
 color_status_texts = ["No Data", "No Restriction Measures", "Recommended Closing", "Required Closing at Some Levels" ,"Required Closing at All Levels"]
 def get_circle_color(color_code):
-    # if color_code is None or color_code == "":
-    #     return "No Data"
-    # color_code = str(color_code)
-    # if  color_code == "0":
-    #     return "No Restriction Measures"
-    # elif color_code == "1":
-    #     return "Recommended Closing"
-    # elif color_code == "2":
-    #     return "Required Closing at Some Levels"
-    # elif color_code == "3":
-    #     return "Required Closing at All Levels"
     if color_code is None or color_code == "":
-        return 0
+        return "No Data"
     color_code = str(color_code)
     if  color_code == "0":
-        return 1
+        return "No Restriction Measures"
     elif color_code == "1":
-        return 2
+        return "Recommended Closing"
     elif color_code == "2":
-        return 3
+        return "Required Closing at Some Levels"
     elif color_code == "3":
-        return 4
+        return "Required Closing at All Levels"
+    # if color_code is None or color_code == "":
+    #     return 0
+    # color_code = str(color_code)
+    # if  color_code == "0":
+    #     return 1
+    # elif color_code == "1":
+    #     return 2
+    # elif color_code == "2":
+    #     return 3
+    # elif color_code == "3":
+    #     return 4
 
-first_date = None
 
 # Lets format the columns
 rows_remaining = []
 logs = {}
 
+min_date = datetime(2020, 3, 1)
+max_date = datetime(2020, 5, 1)
 for row in data:
     try:
         if len(row) == 5:
@@ -168,9 +168,13 @@ for row in data:
         # format date.
         # It is present as a string like `2019-12-31`
         # Transform it to: Dec, 31
-        # row_date = row[3]
-        # date = datetime.strptime(row_date, "%Y-%m-%d")
+        row_date = row[3]
+        date = datetime.strptime(row_date, "%Y-%m-%d")
+        if date < min_date or date > max_date:
+            raise Exception("DateOutOfBound")
         # row[3] = date.strftime("%b %d")
+        # row[3] = int(10000*date.year + 100*date.month + date.day)
+
 
         # format new cases
         new_cases = row[4]
@@ -215,25 +219,16 @@ for message in logs.keys():
         wr.writerows(logs[message])
 
 data = rows_remaining
-# groups_covered = []
-# head_rows = []
-# resorted_rows = []
-# for row in data:
-#     school_status_group = row[7]
-#     if school_status_group not in groups_covered:
-#         groups_covered.append(school_status_group)
-#         head_rows.append(row)
-#     else:
-#         resorted_rows.append(row)
-#
-# data = []
-# data += head_rows
-# data += resorted_rows
-#
-data.append(["AFG","Asia","Afghanistan","Dec 30",0.0,"",1.0,"No Data"])
-data.append(["AFG","Asia","Afghanistan","Dec 29",0.0,"",1.0,"No Restriction Measures"])
-data.append(["AFG","Asia","Afghanistan","Dec 28",0.0,"",1.0,"Required Closing at All Levels"])
-data.append(["AFG","Asia","Afghanistan","Dec 27",0.0,"",1.0,"Required Closing at Some Levels"])
+
+# resort data:
+
+dates_map = {}
+
+for row in data:
+    date = row[3]
+    if date not in dates_map:
+        dates_map[date] = {}
+
 
 
 with open("Data/resulting_table.csv", "w") as result_f:
@@ -256,6 +251,7 @@ fig = px.scatter_geo(df,
                      hover_data=info_box_values,
                      # location, date, new cases per million, circle color # TODO change column name
                      animation_frame=columns[3],  # Date
+                     # animation_group=columns[-1],
                      size_max=10,  # circle max size
                      projection="natural earth")
 fig.update_layout(
