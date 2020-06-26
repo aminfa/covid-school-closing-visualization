@@ -183,5 +183,15 @@ fig = px.scatter_geo(df, locations=columns[0], color=columns[5],
                      size=columns[4],
                      animation_frame=columns[3],
                      projection="natural earth")
+fig.update_layout(
+    title={
+        'text': "Measures on educational institutes in combination with sum of new cases per million in the last 7 days",
+        'y':1,
+        'x':0.5,
+        'xanchor': 'center',
+        'yanchor': 'top'
+        }
+    )
+    
 fig.show()
 
