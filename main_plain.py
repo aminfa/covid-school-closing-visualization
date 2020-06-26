@@ -131,25 +131,16 @@ def get_circle_color(color_code):
         return "Required Closing at Some Levels"
     elif color_code == "3":
         return "Required Closing at All Levels"
-    # if color_code is None or color_code == "":
-    #     return 0
-    # color_code = str(color_code)
-    # if  color_code == "0":
-    #     return 1
-    # elif color_code == "1":
-    #     return 2
-    # elif color_code == "2":
-    #     return 3
-    # elif color_code == "3":
-    #     return 4
-
 
 # Lets format the columns
 rows_remaining = []
 logs = {}
 
 min_date = datetime(2020, 3, 1)
-max_date = datetime(2020, 5, 1)
+max_date = datetime(2020, 7, 1)
+
+date_registry = []
+
 for row in data:
     try:
         if len(row) == 5:
@@ -172,8 +163,8 @@ for row in data:
         date = datetime.strptime(row_date, "%Y-%m-%d")
         if date < min_date or date > max_date:
             raise Exception("DateOutOfBound")
-        # row[3] = date.strftime("%b %d")
-        # row[3] = int(10000*date.year + 100*date.month + date.day)
+        if row_date not in date_registry:
+            date_registry.append(row_date)
 
 
         # format new cases
@@ -186,17 +177,8 @@ for row in data:
         # add 100 to all new cases:
         row[4] = new_cases_float
 
-        # format School Status
-        # school = row[5]
-        # school_int = None
-        # if school is not None:
-        #     school_int = int(school)  # parse the text
-        # if school_int not in [None, 0, 1, 2, 3]:
-        #     raise Exception("Illegal school status")
-        # row[5] = school_int
-
         # append circle size:
-        circle_size = 1.0 # min size
+        circle_size = 0.5 # min size
         circle_size += log(row[4] + 1)
         row.append(circle_size)
 
@@ -220,15 +202,18 @@ for message in logs.keys():
 
 data = rows_remaining
 
-# resort data:
-
-dates_map = {}
-
-for row in data:
-    date = row[3]
-    if date not in dates_map:
-        dates_map[date] = {}
-
+# columns = ["ISO-code", "Continent", "Location", "Date", "New Cases per Million", "school_status_code", "circle_size", "School Status"]
+# add 0 sized circle for each color category for each date:
+inivisible_country = {
+    "No Data": "MHL", # Marshall Islands
+    "No Restriction Measures" : "MTQ",
+    "Recommended Closing" : "NIU",
+    "Required Closing at Some Levels" : "TUV",
+    "Required Closing at All Levels" : "WSM"
+}
+for date in date_registry:
+    for code, country in inivisible_country.items():
+        data.append([country, "foo", "foo", date, 0, 0, 0.2, code])
 
 
 with open("Data/resulting_table.csv", "w") as result_f:
@@ -252,7 +237,7 @@ fig = px.scatter_geo(df,
                      # location, date, new cases per million, circle color # TODO change column name
                      animation_frame=columns[3],  # Date
                      # animation_group=columns[-1],
-                     size_max=10,  # circle max size
+                     size_max=8,  # circle max size
                      projection="natural earth")
 fig.update_layout(
     title={
