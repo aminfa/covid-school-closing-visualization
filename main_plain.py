@@ -213,6 +213,7 @@ inivisible_country = {
     "Required Closing at Some Levels" : "TUV",
     "Required Closing at All Levels" : "WSM"
 }
+date_registry.sort()
 for date in date_registry:
     for code, country in inivisible_country.items():
         data.append([country, "foo", "foo", date, 0, 0, 0.2, code])
@@ -226,7 +227,7 @@ with open("Data/resulting_table.csv", "w") as result_f:
 
 # Lets transform data to a dataframe and present it using plotly
 df = pd.DataFrame(data, columns=columns)
-
+df = df.sort_values(by=["Date", "Location"])
 hover_columns = ["Location", "Date", "New Cases per Million", "School Status"]
 info_box_values = df[hover_columns]
 fig = px.scatter_geo(df,
