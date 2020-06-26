@@ -6,6 +6,21 @@ authors:
     Florian Nutt    7037636
 '''
 
+'''
+TODO:
+new column rolling window: sum over new cases per million of last 7 days
+new column size of circle: Map rolling window to size and add a minimun size
+new column color of the circle: Map school status (number) to text of school status and include option for missing value
+check if dates are continuous, if not add line and set size to minimum size and color to missing value
+
+-> Amin
+
+adjust color scale to visualization -> Floriam
+add title to visualization -> Florian
+'''
+
+
+
 # imports
 import pandas as pd
 import plotly.express as px
