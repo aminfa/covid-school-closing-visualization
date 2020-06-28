@@ -22,7 +22,8 @@ import os.path as path
 input_folder = "Data"
 
 if len(sys.argv) == 1:
-    print("The data folder isn't specified; falling back to default data folder: `{}`. You may define it in the command line: {}".format(
+    print("The data folder isn't specified; falling back to default data folder: `{}`."
+          " You may define it in the command line: {}".format(
         input_folder,
         "python idv_ass5_visualization_wizzards.py custom/data/folder"
     ))
@@ -41,12 +42,25 @@ else:
 if not path.isdir(input_folder):
     os.mkdir(input_folder)
 
-    if not path.isfile(input_folder + "/owid-covid-data.csv"):
-        # fetch from github
-        pass
-    if not path.isfile(input_folder + "/school-closures-covid.csv"):
-         # fetch from github
-        pass
+# fetch from github
+if not path.isfile(input_folder + "/owid-covid-data.csv"):
+    try:
+        import urllib.request
+        print('Beginning dataset download to {}...'.format(input_folder + "/owid-covid-data.csv"))
+        url = 'https://github.com/aminfa/covid-school-closing-visualization/raw/master/Data/owid-covid-data.csv'
+        urllib.request.urlretrieve(url, input_folder + "/owid-covid-data.csv")
+    except Exception as ex:
+        print("The specified input directory doesn't contain the owid covid data: {}".format(input_folder + "/owid-covid-data.csv"))
+        exit(1)
+if not path.isfile(input_folder + "/school-closures-covid.csv"):
+    try:
+        import urllib.request
+        print('Beginning dataset download to {}...'.format(input_folder + "/school-closures-covid.csv"))
+        url = "https://raw.githubusercontent.com/aminfa/covid-school-closing-visualization/master/Data/school-closures-covid.csv"
+        urllib.request.urlretrieve(url, input_folder + "/school-closures-covid.csv")
+    except Exception as ex:
+        print("The specified input directory doesn't contain the school closure data: {}".format(input_folder + "/school-closures-covid.csv"))
+        exit(1)
 
 # `data` is a 2 dimensional array that is going to contain all extracted and processed data.
 # Each row describes the covid and school situation of a country in one day.
@@ -54,7 +68,7 @@ if not path.isdir(input_folder):
 data = []
 
 # Read the covid data using the `csv` library. Then extract only those columns that are necessary and add them to `data`.
-with open("Data/owid-covid-data.csv", "r") as covid_csv:
+with open(input_folder + "/owid-covid-data.csv", "r") as covid_csv:
     reader = csv.reader(covid_csv, delimiter=',')
     head = reader.__next__()
     body = []
@@ -80,7 +94,7 @@ print("Extracted data (first three rows):\n{}\n".format(data[:3]))
 del head, body, needed_columns_index
 
 # Now read the school closing data and then merge it with `data` by doing a join operation
-with open("Data/school-closures-covid.csv", "r") as school_csv:
+with open(input_folder + "/school-closures-covid.csv", "r") as school_csv:
     reader = csv.reader(school_csv, delimiter=',')
     head = reader.__next__()
     body = []
@@ -218,7 +232,7 @@ for row in data:
 
 # save deleted rows:
 for message in logs.keys():
-    with open("Data/deleted{}.csv".format(message), "w") as log_f:
+    with open(input_folder + "/deleted{}.csv".format(message), "w") as log_f:
         wr = csv.writer(log_f, quoting=csv.QUOTE_ALL)
         wr.writerows(logs[message])
 
@@ -239,7 +253,7 @@ for date in date_registry:
         data.append([country, "foo", "foo", date, 0, 0, 0.2, code])
 
 # Write the resulting file the the data folder:
-with open("Data/resulting_table.csv", "w") as result_f:
+with open(input_folder + "/resulting_table.csv", "w") as result_f:
     wr = csv.writer(result_f, quoting=csv.QUOTE_ALL)
     wr.writerows(data)
 
