@@ -6,27 +6,47 @@ authors:
     Florian Nutt    7037636
 '''
 
-'''
-TODO:
-new column rolling window: sum over new cases per million of last 7 days
-new column size of circle: Map rolling window to size and add a minimun size
-new column color of the circle: Map school status (number) to text of school status and include option for missing value
-check if dates are continuous, if not add line and set size to minimum size and color to missing value
-
--> Amin
-
-adjust color scale to visualization -> Floriam
-add title to visualization -> Florian
-'''
-
 # imports
-import pandas as pd
-import plotly.express as px
+try:
+    import pandas as pd
+    import plotly.express as px
+except Exception:
+    print("Please install pandas and plotly:\n{}\n{}".format("pip install pandas==1.0.5", "pip install plotly==4.8.1"))
+    exit(1)
 import csv
 from datetime import datetime
 from math import log
-import sys
-import traceback
+import sys, os
+import os.path as path
+
+input_folder = "Data"
+
+if len(sys.argv) == 1:
+    print("The data folder isn't specified; falling back to default data folder: `{}`. You may define it in the command line: {}".format(
+        input_folder,
+        "python idv_ass5_visualization_wizzards.py custom/data/folder"
+    ))
+else:
+    input_folder = sys.argv[1]
+    if not path.isdir(input_folder):
+        print("The specified input directory doesn't exist: {}".format(input_folder))
+        exit(1)
+    elif not path.isfile(input_folder + "/owid-covid-data.csv"):
+        print("The specified input directory doesn't contain the owid covid data: {}".format(input_folder + "/owid-covid-data.csv"))
+        exit(1)
+    elif not path.isfile(input_folder + "/school-closures-covid.csv"):
+        print("The specified input directory doesn't contain the school closure data: {}".format(input_folder + "/school-closures-covid.csv"))
+        exit(1)
+
+if not path.isdir(input_folder):
+    os.mkdir(input_folder)
+
+    if not path.isfile(input_folder + "/owid-covid-data.csv"):
+        # fetch from github
+        pass
+    if not path.isfile(input_folder + "/school-closures-covid.csv"):
+         # fetch from github
+        pass
 
 # `data` is a 2 dimensional array that is going to contain all extracted and processed data.
 # Each row describes the covid and school situation of a country in one day.
@@ -204,7 +224,6 @@ for message in logs.keys():
 
 data = rows_remaining
 
-# columns = ["ISO-code", "Continent", "Location", "Date", "New Cases per Million", "school_status_code", "circle_size", "School Status"]
 # add 0 sized circle for each color category for each date:
 inivisible_country = {
     "No Data": "MHL", # Marshall Islands
@@ -216,13 +235,13 @@ inivisible_country = {
 date_registry.sort()
 for date in date_registry:
     for code, country in inivisible_country.items():
+        # columns = ["ISO-code", "Continent", "Location", "Date", "New Cases per Million", "school_status_code", "circle_size", "School Status"]
         data.append([country, "foo", "foo", date, 0, 0, 0.2, code])
 
-
+# Write the resulting file the the data folder:
 with open("Data/resulting_table.csv", "w") as result_f:
     wr = csv.writer(result_f, quoting=csv.QUOTE_ALL)
     wr.writerows(data)
-
 
 
 # Lets transform data to a dataframe and present it using plotly
